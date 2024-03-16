@@ -11,6 +11,7 @@ struct Results {
 };
 
 void printSequence(const char* S, const int P[], const int Q[], int index) {
+
     int startIndex = P[index];
     int endIndex = Q[index];
 
@@ -22,49 +23,107 @@ void printSequence(const char* S, const int P[], const int Q[], int index) {
     return;
 }
 
-int getValue(char ch) {
-    switch(ch) {
-        case 'A':
-            return 1;
-        case 'C':
-            return 2;
-        case 'G':
-            return 3;
-        case 'T':
-            return 4;
+int getStrLen( char * s) {
+
+    int i = 0, length = 0;
+    while (s[i] != '\0') { 
+        length++;
+        i++;
+    }
+    return length;
+}
+
+void calculatePrefixSums(int A[],int C[], int G[], int T[], char * S, int strLen) {
+    for (int i = 0; i < strLen - 1; i++) {
+        char ch = S[i];
+        A[i + 1] = A[i];
+        C[i + 1] = C[i];
+        G[i + 1] = G[i];
+        T[i + 1] = T[i];
+
+        switch(ch) {
+            case 'A':
+                A[i + 1]++;
+                break;
+            case 'C':
+                C[i + 1]++;
+                break;
+            case 'G':
+                G[i + 1]++;
+                break;
+            case 'T':
+                T[i + 1]++;
+                break;
+        }
     }
 }
 
+void printIntArray(int A[], int N) {
+
+    for (int i = 0; i < N; i++) {
+        printf("%d ", A[i]);
+    }
+    printf("\n");
+}
+
+int findMin(int startIndex, int endIndex, int A[], int C[], int G[], int T[]) {
+    
+    endIndex += 1; //due to nature of prefix sum arrays
+
+    if (A[startIndex] != A[endIndex])
+        return 1;
+    else if (C[startIndex] != C[endIndex])
+        return 2;
+    else if (G[startIndex] != G[endIndex])
+        return 3;
+    else
+        return 4;
+}
+
 struct Results solution (char *S, int P[], int Q[], int M) {
+
     struct Results result;
     result.A = malloc(sizeof(int) * M);
+    int strLen = getStrLen(S) + 1;
+
+    //arrays for prefix sums
+    int * A = calloc(strLen, sizeof(int));
+    int * C = calloc(strLen, sizeof(int));
+    int * G = calloc(strLen, sizeof(int));
+    int * T = calloc(strLen, sizeof(int));
+    calculatePrefixSums(A,C,G,T, S, strLen);
+
+
     for (int i = 0; i < M; i++) {
+
         printSequence(S, P, Q, i);
-        //min is highest value in 1st iteration. we will search for smaller values.
-        char min = 'T';
+        int min = findMin(P[i], Q[i], A, C, G, T);
+        result.A[i] = min;
 
-        for (int j = P[i]; j <= Q[i]; j++) {
-            char nucleotid = S[j];
-            if (nucleotid < min)
-                min = nucleotid;
-        }
-    
-        result.A[i] = getValue(min);
     }
-
+    free(A);
+    free(C);
+    free(G);
+    free(T);
     return result;
 }
 
 
 int main() {
-    char S[] = "CAGCCTA";
-    int P[] = {2, 5, 0};
-    int Q[] = {4,5,6};
+
+    char S[] = "AC";
+    int P[] = {0,0, 1};
+    int Q[] = {0, 1, 1};
     int M = 3;
     struct Results result = solution(S,P,Q,M);
+    printf("SOLUTION: ");
+
     for (int i = 0; i < M; i++) {
-        printf("%d\n", result.A[i]);
+        printf("%d ", result.A[i]);
     }
+
+
+    free(result.A);
+    return 0;
 }
 
-//pomysl jest, zeby zapisywac pod kolejnymi indeksami wzrost/spadek wzgledem poprzedniego elementu
