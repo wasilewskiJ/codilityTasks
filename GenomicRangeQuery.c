@@ -8,6 +8,7 @@ The DNA sequence is given as a non-empty string S = S[0]S[1]...S[N-1] consisting
 
 struct Results {
     int * A;
+    int M;
 };
 
 void printSequence(const char* S, const int P[], const int Q[], int index) {
@@ -84,6 +85,7 @@ struct Results solution (char *S, int P[], int Q[], int M) {
 
     struct Results result;
     result.A = malloc(sizeof(int) * M);
+    result.M = M;
     int strLen = getStrLen(S) + 1;
 
     //arrays for prefix sums
