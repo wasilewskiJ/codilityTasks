@@ -1,85 +1,72 @@
-
-
+#include <stdlib.h>
 #include <stdio.h>
-#include<stdlib.h>
 #include <math.h>
-// you can write to stdout for debugging purposes, e.g.
-// printf("this is a debug message\n");
 
-struct Flags {
-    int* flags;
+typedef struct {
+    int* flagsIndexes;
     int size;
-};
+} Flags;
 
-void freeFlags(struct Flags* flags) {
-    free(flags->flags);
+void freeFlags(Flags* flags) {
+    free(flags->flagsIndexes);
     free(flags);
 }
 
-struct Flags* flags(int* A, int N) {
-    int* indexes = malloc(sizeof(int) * N);
+Flags* getFlagsIndexes(int* A, int N) {
+    int* flagsIndexes = malloc(sizeof(int) * N-2);
     int counts = 0;
     for (int i = 1; i < N-1; i++) {
-        if (A[i-1] < A[i] && A[i] > A[i+1]) {
-            indexes[counts] = i;
+        if (A[i] > A[i-1] && A[i] > A[i+1]) {
+            flagsIndexes[counts] = i;
             counts++;
-        } 
+        }
     }
-    struct Flags* flags = malloc(sizeof(struct Flags));
-    indexes = realloc(indexes, sizeof(int) * counts);
-    flags->flags = indexes;
+    flagsIndexes = realloc(flagsIndexes, counts * sizeof(int));
+    Flags* flags = malloc(sizeof(Flags));
+    flags->flagsIndexes = flagsIndexes;
     flags->size = counts;
     return flags;
 }
 
-
-
-void printArray(int*A, int N) {
-    for (int i = 0; i < N; i++) {
-        printf("element [%d]: %d\n", i+1, A[i]);
-    }
-}
-
-int max(int* A, int N) {
+int getNumOfFlags(Flags* flags, int* A, int N) {
+    if (flags->size == 1)
+        return 1;
+    
+    int i = flags->size > (int) sqrt((N)) + 1 ? (int) sqrt((N)) + 1 : flags->size;
+    //printf("i is equal to: %d\n", i);
     int max = 0;
-    for (int i = 0; i < N; i++) {
-        if (A[i] > max)
-            max = A[i];
-    }
-
+    for(; i >= 1; i--) {
+        int current = 1;
+        int lastF = 0;
+        for(int j = 1; j < flags->size; j++) {
+            if (flags->flagsIndexes[j] - flags->flagsIndexes[lastF] >= i) {
+                current++;
+                lastF = j;
+            }
+            if (current == i)
+                break;
+        }
+        if (max > current)
+            return max;
+        else
+            max = current;
+    }  
     return max;
 }
 
-int findMax(struct Flags* flags, int* A, int N) {
-    if (N < 3 || flags->size == 0)
-        return 0;
-    if (flags->size == 1)
-        return 1;
-
-    int maxFlagCount = (int) sqrt(flags->flags[flags->size - 1] - flags->flags[0]) + 1;
-    maxFlagCount = maxFlagCount < flags->size ? maxFlagCount : flags->size;
-    int m = 0;
-
-    for (int i = maxFlagCount; i >= 1; i--) {
-        int lastF = 0;
-        int c = 1;
-        for (int j = 1; j < flags->size && c < i; j++) {
-            if (flags->flags[j] - flags->flags[lastF] >= i) {
-                c++;
-                lastF = j;
-            }
-        }
-        m = c > m ? c : m;
-        if (m == i) break; // If you've placed `i` flags, that's the maximum for this `i`
+void printArray(int arr[], int n) {
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
     }
-    return m;
 }
 
-
-int solution(int* A, int N) {
-    struct Flags* flag = flags(A, N);
-    int result = findMax(flag, A, N);
-    freeFlags(flag);
+int solution(int A[], int N) {
+    if (N < 3)
+        return 0;
+    
+    Flags* flags = getFlagsIndexes(A, N);
+    //printArray(flags->flagsIndexes, flags->size);
+    int result = getNumOfFlags(flags, A, N);
+    freeFlags(flags);
     return result;
 }
-
